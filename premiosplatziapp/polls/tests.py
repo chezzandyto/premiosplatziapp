@@ -26,6 +26,14 @@ class QuestionModelTests(TestCase): #heredar de testcase nos permiten traer una 
         past_question = Question(question_text="Quien es el mejor Course Director de Platzi",pub_date=time)
         self.assertEquals(past_question.was_published_recently(),False)
 
+def create_question(question_text, days):
+    """
+    Create a question with the given question_text and published the given
+    number of days offset to now (negative for past, positive for future)
+    """
+    time = timezone.now() + datetime.timedelta(days=days)
+    return Question.objects.create(question_text=question_text, pub_date=time)
+
 class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
         """If no Questions exist, an appropiate message is displayed"""
@@ -34,11 +42,25 @@ class QuestionIndexViewTests(TestCase):
         self.assertContains(response, "No polls are available")
         self.assertQuerysetEqual(response.context["latest_question_list"], []) #verificar que el conjunto de preguntas esta vacio
 
-    def test_question_published_on_future(self):
+    def test_question_published_in_future(self):
         """If a question whose pub_date is on th future, it should not be displayed"""
-        time = timezone.now() + datetime.timedelta(days=30)
-        future_question = Question(question_text="xxxxxxxxxxxxx",pub_date=time)
-        future_question.save()
+        #time = timezone.now() + datetime.timedelta(days=30)
+        #future_question = Question(question_text="xxxxxxxxxxxxx",pub_date=time)
+        #future_question.save()
+        future_question = create_question("xxxxxx", 30)
         response = self.client.get(reverse("polls:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No polls are available")
+        self.assertQuerysetEqual(response.context["latest_question_list"], [])
         self.assertNotContains(response, future_question)
+
+    def test_question_published_in_past(self):
+        """If a question whose pub_date is in the past, only that should be displayed"""
+        #time = timezone.now() + datetime.timedelta(days=30)
+        #future_question = Question(question_text="xxxxxxxxxxxxx",pub_date=time)
+        #future_question.save()
+        future_question = create_question("xxxxxx", -5)
+        response = self.client.get(reverse("polls:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertQuerysetEqual(response.context["latest_question_list"], [future_question])
 
