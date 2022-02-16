@@ -1,2 +1,9 @@
 /venv/
-/premiosplatziapp/polls/__pycache__
+/premiosplatziapp/polls/__pycache__/
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+media
