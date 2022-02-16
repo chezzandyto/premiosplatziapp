@@ -1,8 +1,10 @@
+from audioop import reverse
 import datetime
 
 from django.test import TestCase
 from django.utils import timezone
 from .models import Question
+from django.urls.base import reverse
 
 class QuestionModelTests(TestCase): #heredar de testcase nos permiten traer una bateria de tests
 
@@ -23,3 +25,11 @@ class QuestionModelTests(TestCase): #heredar de testcase nos permiten traer una 
         time = timezone.now() - datetime.timedelta(days=10)
         past_question = Question(question_text="Quien es el mejor Course Director de Platzi",pub_date=time)
         self.assertEquals(past_question.was_published_recently(),False)
+
+class QuestionIndexViewTests(TestCase):
+    def test_no_questions(self):
+        """If no Questions exist, an appropiate message is displayed"""
+        response = self.client.get(reverse("polls:index")) #hacer una peticion HTTP sobre el URL de index y guardar en response
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No polls are available")
+        self.assertQuerysetEqual(response.context["latest_question_list"], []) #verificar que el conjunto de preguntas esta vacio
